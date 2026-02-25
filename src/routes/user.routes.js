@@ -6,7 +6,8 @@ const router = Router();
 const users = globalThis.__users || (globalThis.__users = []);
 
 router.get("/", (req, res) => {
-  res.json({ count: users.length, users });
+  const safeUsers = users.map(({passwordHash,...rest})=>rest);
+  res.json({ count: safeUsers.length, users:safeUsers });
 });
 
 router.get("/:id", (req, res) => {
@@ -15,8 +16,8 @@ router.get("/:id", (req, res) => {
 
   const user = users.find((u) => u.id === id);
   if (!user) return res.status(404).json({ error: "User not found" });
-
-  return res.json(user);
+  const {passwordHash, ...safeUser}= user;
+  return res.json(safeUser);
 });
 
 router.patch("/:id", (req, res) => {
@@ -43,8 +44,8 @@ router.patch("/:id", (req, res) => {
   }
 
   user.updatedAt = new Date().toISOString();
-
-  return res.json({ message: "User updated (in memory)", user });
+  const { passwordHash, ...safeUser } = user;
+return res.json({ message: "User updated (in memory)", user: safeUser });
 });
 
 router.delete("/:id", (req, res) => {

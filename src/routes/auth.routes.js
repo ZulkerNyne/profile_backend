@@ -1,10 +1,10 @@
 import { Router } from "express";
-
+import bcrypt from "bcryptjs";
 const router = Router();
 
 const users = globalThis.__users || (globalThis.__users=[]);
 
-router.post("/register",(req,res)=>{
+router.post("/register",async(req,res)=>{
     const {email, password, fullName}=req.body;
     if (!email || ! password || ! fullName){
         return res.status(400).json({
@@ -17,11 +17,12 @@ router.post("/register",(req,res)=>{
             error: "Email alreaedy registered"
         });
     }
+    const passwordHash = await bcrypt.hash(password, 10);
     const now = new Date().toISOString();
     const newUser={
         id: users.length+1,
         email, 
-        password,
+        passwordHash,
         fullName,
         bio:"",
         createdAt: now,
@@ -29,7 +30,7 @@ router.post("/register",(req,res)=>{
     };
     users.push(newUser);
     return res.status(201).json({
-        message:"User registered successfully ",
+        message:"User registered successfully hashed password ",
         user:{
             id: newUser.id,
             email: newUser.email,
@@ -42,7 +43,7 @@ router.post("/register",(req,res)=>{
     });
 });
 
-router.post("/login",(req,res)=>{
+router.post("/login",async(req,res)=>{
     const {email,password}=req.body;
     
 
@@ -52,7 +53,11 @@ router.post("/login",(req,res)=>{
         });
     }
     const user =users.find((u)=>u.email ===email);
-    if (!user || user.password !== password){
+    if (!user){
+        return res.status(401).json({error: "Invalid email or password"});
+    }
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok){
         return res.status(401).json({error: "Invalid email or password"});
     }
     return res.json({
