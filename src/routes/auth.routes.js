@@ -1,4 +1,5 @@
 import { Router } from "express";
+import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 const router = Router();
 
@@ -60,10 +61,16 @@ router.post("/login",async(req,res)=>{
     if (!ok){
         return res.status(401).json({error: "Invalid email or password"});
     }
+    const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "2h" }
+);
+
     return res.json({
-        message: "Login successful (fake)",
-        user: {id: user.id, email: user.email, fullName: user.fullName},
-    });
+        message: "Login successful",
+        token,
+});
 });
 
 export default router;

@@ -1,5 +1,5 @@
 import { Router } from "express";
-
+import { authRequired } from "../middleware/auth.middleware.js";
 const router = Router();
 
 // shared in-memory store
@@ -8,6 +8,15 @@ const users = globalThis.__users || (globalThis.__users = []);
 router.get("/", (req, res) => {
   const safeUsers = users.map(({passwordHash,...rest})=>rest);
   res.json({ count: safeUsers.length, users:safeUsers });
+});
+router.get("/me", authRequired, (req, res) => {
+  const userId = req.user.userId;
+
+  const user = users.find((u) => u.id === userId);
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const { passwordHash, ...safeUser } = user;
+  return res.json(safeUser);
 });
 
 router.get("/:id", (req, res) => {
