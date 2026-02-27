@@ -28,7 +28,7 @@ router.get("/:id", (req, res) => {
   const {passwordHash, ...safeUser}= user;
   return res.json(safeUser);
 });
-//only the client can change it 
+//token controls which user
 router.patch("/me", authRequired, (req, res) => {
   const userId = req.user.userId;
 
@@ -56,7 +56,7 @@ router.patch("/me", authRequired, (req, res) => {
   const { passwordHash, ...safeUser } = user;
   return res.json({ message: "Profile updated", user: safeUser });
 });
-//anyone with the token can update it 
+//client controls which user
 
 /*router.patch("/:id", (req, res) => {
   const id = Number(req.params.id);
@@ -85,7 +85,7 @@ router.patch("/me", authRequired, (req, res) => {
   const { passwordHash, ...safeUser } = user;
 return res.json({ message: "User updated (in memory)", user: safeUser });
 });*/
-//only client can delete it 
+//token controls which user
 router.delete("/me", authRequired, (req, res) => {
   const userId = req.user.userId;
 
